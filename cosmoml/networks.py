@@ -26,7 +26,7 @@ def deep_mlp(inputs, hidden_units,
                     normalizer_params={'is_training': is_training}):
 
             for layer_id, num_hidden_units in enumerate(hidden_units):
-                net = slim.fully_connected(inputs, num_hidden_units, scope='fc_%d'%layer_id)
+                net = slim.fully_connected(net, num_hidden_units, scope='fc_%d'%layer_id)
 
         return slim.utils.collect_named_outputs(outputs_collections,
                                                 sc.original_name_scope,
