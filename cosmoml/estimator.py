@@ -7,7 +7,6 @@ import tensorflow.contrib.slim as slim
 import tensorflow.contrib.distributions as tfd
 
 from .networks import deep_mlp
-from .stats import log_gm2
 
 __all__ = ['MDNEstimator']
 
