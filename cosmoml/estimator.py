@@ -7,7 +7,6 @@ import tensorflow.contrib.slim as slim
 import tensorflow.contrib.distributions as tfd
 
 from .networks import deep_mlp
-from .stats import log_gm2
 
 __all__ = ['MDNEstimator']
 
@@ -22,8 +21,10 @@ def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
     input_layer = tf.feature_column.input_layer(features=features, feature_columns=feature_columns)
 
     # Builds the neural network
-    net = deep_mlp(input_layer, hidden_units, activation_fn, normalizer_fn,
-                   dropout, is_training)
+    #net = deep_mlp(input_layer, hidden_units, activation_fn, normalizer_fn,
+    #               dropout, is_training)
+    net = slim.fully_connected(input_layer, 512,activation_fn=tf.nn.elu)
+    net = slim.fully_connected(net, 512,activation_fn=tf.nn.elu)
 
     # Size of the covariance matrix
     if diag ==True:
@@ -42,7 +43,7 @@ def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
     out_p = tf.nn.softmax(tf.reshape(out_p, (-1, n_mixture)))
 
     if diag == True:
-        sigma_mat = tf.nn.softplus(out_sigma)
+        sigma_mat = tf.nn.softplus(out_sigma)+1e-4
         gmm = tfd.MixtureSameFamily(mixture_distribution=tfd.Categorical(probs=out_p),
                       components_distribution=tfd.MultivariateNormalDiag(loc=out_mu,
                                                                         scale_diag=sigma_mat))
@@ -81,7 +82,7 @@ def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
     if mode == tf.estimator.ModeKeys.TRAIN:
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            train_op = optimizer(learning_rate=0.0002).minimize(loss=total_loss,
+            train_op = optimizer(learning_rate=0.00001).minimize(loss=total_loss,
                                         global_step=tf.train.get_global_step())
         tf.summary.scalar('loss', loss)
     elif mode == tf.estimator.ModeKeys.EVAL:
