@@ -127,4 +127,4 @@ if __name__ == "__main__":
 
     # Writes down the main coadded table as well as the light curve data
     s82_coadd.to_hdf('s82_pointsource_catalog.hdf', 'coadd', mode='w')
-    s82_coadd.to_hdf('s82_pointsource_catalog.hdf', 'lightcurve', mode='a')
+    s82_lightcurves.to_hdf('s82_pointsource_catalog.hdf', 'lightcurve', mode='a')
