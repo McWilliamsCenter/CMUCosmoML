@@ -7,7 +7,7 @@ SELECT
   m.distance
 INTO my_table
 FROM
-  mydb.ref_cat p1
+  mydb.my_cat p1
   CROSS APPLY dbo.fGetNearbyObjEq(p1.ra, p1.dec, 0.016) AS m
   join PhotoObjAll p2 on p2.objid = m.objid
   join Field f on p2.fieldid = f.fieldid
