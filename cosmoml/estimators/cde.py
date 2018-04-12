@@ -6,8 +6,6 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 import tensorflow.contrib.distributions as tfd
 
-from .networks import deep_mlp
-
 __all__ = ['MDNEstimator']
 
 def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
