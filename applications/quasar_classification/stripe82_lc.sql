@@ -5,7 +5,7 @@ SELECT
   p2.psfmagerr_u, p2.psfmagerr_g, p2.psfmagerr_r, p2.psfmagerr_i, p2.psfmagerr_z,
   p2.extinction_u, p2.extinction_g, p2.extinction_r, p2.extinction_i, p2.extinction_z,
   m.distance
-INTO tmp_table
+INTO my_table
 FROM
   mydb.ref_cat p1
   CROSS APPLY dbo.fGetNearbyObjEq(p1.ra, p1.dec, 0.016) AS m

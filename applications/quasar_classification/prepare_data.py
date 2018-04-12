@@ -93,18 +93,18 @@ if __name__ == "__main__":
     # Try to drop the temporary tables we will be creating
     print("Dropping temporary tables if they exist")
     try:
-        job_id = casjobs.submitJob("drop table ref_cat", context='MyDB')
-        casjobs.waitForJob(job_id)
-        job_id = casjobs.submitJob("drop table tmp_table", context='MyDB')
-        casjobs.waitForJob(job_id)
-    except e:
-        print("error", e)
+        casjobs.executeQuery("drop table my_cat", context='MyDB')
+        casjobs.executeQuery("drop table my_table", context='MyDB')
+    except:
+        print("error")
 
-    for i in n_batch:
-        print("Downloading batch ",i)
+    for i in range(n_batch):
+        print("Downloading batch ", i)
+
         # Upload the piece of reference catalog
-        casjobs.uploadPandasDataFrameToTable(ref_cat[i*BATCH_SIZE:(i+1)*BATCH_SIZE], 'ref_cat', context='MyDB')
+        casjobs.uploadPandasDataFrameToTable(ref_cat[i*BATCH_SIZE:(i+1)*BATCH_SIZE], 'my_cat', context='MyDB')
         print("Index uploaded")
+
         # Submit job to collect light curves
         with open(S82_LC_QUERY, 'r') as sql_query:
             job_id = casjobs.submitJob(sql_query.read(), context='stripe82')
@@ -113,18 +113,17 @@ if __name__ == "__main__":
         casjobs.waitForJob(job_id)
         print("Retrieving light curves...")
         # Retrieve ligth curve dataset
-        res = casjobs.executeQuery("select * from tmp_table", context='MyDB')
+        res = casjobs.executeQuery("select * from my_table", context='MyDB')
         print("Done :-)")
+
         if s82_lightcurves is None:
             s82_lightcurves = res
         else:
             s82_lightcurves.append(res, ignore_index=True)
 
         # Drop both the temp table and reference catalog to start fresh
-        job_id = casjobs.submitJob("drop table ref_cat", context='MyDB')
-        casjobs.waitForJob(job_id)
-        job_id = casjobs.submitJob("drop table tmp_table", context='MyDB')
-        casjobs.waitForJob(job_id)
+        casjobs.executeQuery("drop table my_cat", context='MyDB')
+        casjobs.executeQuery("drop table my_table", context='MyDB')
 
     # Writes down the main coadded table as well as the light curve data
     s82_coadd.to_hdf('s82_pointsource_catalog.hdf', 'coadd', mode='w')
