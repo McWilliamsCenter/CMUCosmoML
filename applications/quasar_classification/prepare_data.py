@@ -66,7 +66,10 @@ if __name__ == "__main__":
     # 2. Create and download catalog of coadded point sources
     token = authentication.login(args.user, args.pwd)     # Login to sciserver
     with open(S82_COADD_QUERY, 'r') as sql_query:
-        s82_coadd = casjobs.executeQuery(sql_query.read(), context='stripe82')
+        job_id = casjobs.submitJob(sql_query.read(), context='stripe82')
+    casjobs.waitForJob(job_id)
+    s82_coadd = casjobs.executeQuery("select * from tmp_table", context='MyDB')
+    casjobs.executeQuery("drop table tmp_table", context='MyDB')
 
     # 3. Cross-match with reference quasar catalog to get all known quasars
     s82_coadd = cross_match(s82_coadd)

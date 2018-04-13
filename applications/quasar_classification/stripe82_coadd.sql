@@ -5,6 +5,7 @@ SELECT
   psfmagerr_u, psfmagerr_g, psfmagerr_r, psfmagerr_i, psfmagerr_z,
   extinction_u, extinction_g, extinction_r, extinction_i, extinction_z,
   flags
+INTO tmp_table
 FROM
   PhotoObjAll
 WHERE ((flags & 0x10000000) != 0) -- detected in BINNED1
