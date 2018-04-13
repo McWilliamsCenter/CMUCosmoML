@@ -24,7 +24,7 @@ S82_LC_QUERY="stripe82_lc.sql"
 DATASET_LENGTH=100000
 
 # Batch size for downloading light curves
-BATCH_SIZE=20000
+BATCH_SIZE=10000
 
 def cross_match(coadd_catalog, match_dist=1*u.arcsec):
     """
@@ -119,7 +119,8 @@ if __name__ == "__main__":
         if s82_lightcurves is None:
             s82_lightcurves = res
         else:
-            s82_lightcurves.append(res, ignore_index=True)
+            print("Appending data")
+            s82_lightcurves = s82_lightcurves.append(res, ignore_index=True)
 
         # Drop both the temp table and reference catalog to start fresh
         casjobs.executeQuery("drop table my_cat", context='MyDB')
