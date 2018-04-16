@@ -3,11 +3,12 @@ import wget
 from sciserver import casjobs, authentication
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from astropy.table import Table
+from astropy.table import Table, vstack, join
 import numpy as np
 import pandas as pd
 import os.path
 import argparse
+from sklearn.preprocessing import RobustScaler
 
 # Default path to the downloaded data
 DATA_PATH="."
@@ -51,6 +52,100 @@ def cross_match(coadd_catalog, match_dist=1*u.arcsec):
     coadd_catalog['label'].iloc[tol_idx] = 1
     return coadd_catalog
 
+def preprocess_data(input_filename='s82_pointsource_catalog.hdf',
+                    output_filename='ligthcurve_data.fits.gz',
+                    max_length=90, min_length=10, distance_cut=0.3 # arcsec
+                    ):
+    """
+    This function preprocesses the raw sdss tables into a
+    a time series format with fixed maximum length.
+    """
+    # Select the features to include in the time-series
+    features = ['mjd_std',
+                'psfMag_u_std', 'psfMag_g_std', 'psfMag_r_std', 'psfMag_i_std', 'psfMag_z_std',
+                'psfmagerr_u', 'psfmagerr_g', 'psfmagerr_r', 'psfmagerr_i', 'psfmagerr_z']
+
+    dataset = Table.from_pandas(pd.read_hdf('s82_pointsource_catalog.hdf','/lightcurve'))
+    coadd_data = Table.from_pandas(pd.read_hdf('s82_pointsource_catalog.hdf','/coadd'))
+
+    for c in coadd_data.colnames:
+        coadd_data[c].name = 'coadd_'+c
+
+    dataset = join(dataset, coadd_data)
+
+    # Remove unobserved/partially observed row
+    inds = np.where((dataset['mjd_u'] == 0) + (dataset['mjd_g'] == 0) +
+                    (dataset['mjd_r'] == 0) + (dataset['mjd_i'] == 0) +
+                    (dataset['mjd_z'] == 0))
+    dataset.remove_rows(inds[0])
+
+    # Remove rows deviating more than 0.3 arcsec from coadded position
+    inds = np.where((dataset['distance']*60 > distance_cut))
+    dataset.remove_rows(inds[0])
+
+    # Corrects all magnitudes for extinction
+    for b in ['u', 'g', 'r', 'i', 'z']:
+        dataset['psfMag_%s'%b] = dataset['psfMag_%s'%b] - dataset['extinction_%s'% b]
+        dataset['coadd_psfMag_%s'%b] = dataset['coadd_psfMag_%s'%b] - dataset['coadd_extinction_%s'% b]
+
+
+    # Computes extra standardized columns
+    dataset['mjd'] = ((dataset['mjd_u'] + dataset['mjd_g'] +
+                          dataset['mjd_r'] + dataset['mjd_i'] +
+                          dataset['mjd_z']) / 5).astype('float64')
+
+    dataset['mjd_std'] = dataset['mjd'] / 3000.
+
+    for b in ['psfMag_u', 'psfMag_g', 'psfMag_r', 'psfMag_i', 'psfMag_z']:
+        dataset['%s_std'%b] = RobustScaler().fit_transform(
+            (dataset[b] - dataset['coadd_%s' % b]).reshape(-1, 1)).squeeze()
+
+    # Sort the table by observation and time
+    dataset.sort(['coadd_objid', 'mjd_std'])
+
+    # count the number of observations for each entries
+    unique_ids, idices, counts= np.unique(dataset['coadd_objid'], return_inverse=True, return_counts=True)
+    dataset['obs_len'] = counts[idices]
+
+    # Remove observations with fewer than minimum number of obs
+    dataset = dataset[dataset['obs_len'] > min_length]
+
+    # Recount after the last operation
+    unique_ids, idices, counts= np.unique(dataset['coadd_objid'], return_inverse=True, return_counts=True)
+    dataset['obs_len'] = counts[idices]
+    dataset['obs_id'] = np.arange(len(counts))[idices]
+
+    # Create array to store the time series
+    ts = np.zeros((len(counts), max_length, len(features))).astype('float32')
+
+    # Restrict to the features we want to extract
+    d = dataset[features]
+    ind=0
+    for i in range(len(counts)):
+        if i %100 == 0:
+            print("processed %d entries"%i)
+            assert dataset[ind]['obs_id'] == i
+        t = dataset[ind:ind+dataset[ind]['obs_len']][features]
+
+        ind += dataset[ind]['obs_len']
+
+        t = t[0:min(len(t),max_length)]
+        ts[i,:len(t),:] = np.array(t).view(np.float64).reshape((-1,len(features))).astype(np.float32)
+        ts[i,:,0] -= ts[i,0,0] # Subtract the first mjd
+
+    # Create a table to save the time series
+    time_series_table = Table({'time_series':ts, 'obs_id':range(len(ts))})
+
+    # Create a small data table with just the first observation of each object
+    unique_ids, idices, counts, inde= np.unique(dataset['coadd_objid'],
+                                                return_inverse=True,
+                                                return_counts=True,
+                                                return_index=True)
+    dataset_table = dataset[idices]
+
+    # Join and save the table
+    output_table = Table(join(dataset_table, time_series_table), masked=False)
+    output_table.write(output_filename, overwrite=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Creates a quasar light curve dataset.')
@@ -132,3 +227,6 @@ if __name__ == "__main__":
     # Writes down the main coadded table as well as the light curve data
     s82_coadd.to_hdf('s82_pointsource_catalog.hdf', 'coadd', mode='w')
     s82_lightcurves.to_hdf('s82_pointsource_catalog.hdf', 'lightcurve', mode='a')
+
+    # Creates lightcurves in a simple format
+    preprocess_data()
