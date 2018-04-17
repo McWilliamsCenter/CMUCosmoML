@@ -1,2 +1,2 @@
-from cde import *
-from rnn import *
+from .cde import *
+from .rnn import *
