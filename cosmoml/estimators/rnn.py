@@ -5,7 +5,7 @@ from tensorflow.contrib.rnn import DropoutWrapper
 __all__ = ['RNNClassifier']
 
 def _rnn_model_fn(features, labels, hidden_units, optimizer, activation_fn,
-                    =normalizer_fn, dropout, mode):
+                    normalizer_fn, dropout, mode):
 
     # Check for training mode
     is_training = mode == tf.estimator.ModeKeys.TRAIN
