@@ -63,7 +63,7 @@ def preprocess_data(input_filename='s82_pointsource_catalog.hdf',
     # Select the features to include in the time-series
     features = ['mjd_std',
                 'psfMag_u_std', 'psfMag_g_std', 'psfMag_r_std', 'psfMag_i_std', 'psfMag_z_std',
-                'psfmagerr_u', 'psfmagerr_g', 'psfmagerr_r', 'psfmagerr_i', 'psfmagerr_z']
+                'psfmagerr_u', 'psfmagerr_g', 'psfmagerr_r', 'psfmagerr_i', 'psfmagerr_z', 'distance']
 
     dataset = Table.from_pandas(pd.read_hdf('s82_pointsource_catalog.hdf','/lightcurve'))
     coadd_data = Table.from_pandas(pd.read_hdf('s82_pointsource_catalog.hdf','/coadd'))
@@ -99,6 +99,8 @@ def preprocess_data(input_filename='s82_pointsource_catalog.hdf',
     for b in ['psfMag_u', 'psfMag_g', 'psfMag_r', 'psfMag_i', 'psfMag_z']:
         dataset['%s_std'%b] = RobustScaler().fit_transform(
             (dataset[b] - dataset['coadd_%s' % b]).reshape(-1, 1)).squeeze()
+
+    dataset['distance'] = RobustScaler().fit_transform(dataset['distance'].reshape(-1, 1)).squeeze()
 
     # Sort the table by observation and time
     dataset.sort(['coadd_objid', 'mjd_std'])
