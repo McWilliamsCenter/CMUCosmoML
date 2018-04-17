@@ -25,6 +25,7 @@ The final file produced by this script is `ligthcurve_data.fits.gz` which can be
 read using the following:
 ```python
 >>> from astropy.table import Table
+>>> data = Table.read('ligthcurve_data.fits.gz')
 ```
 Here are a few relevant columns:
  - `time_series`: array storing the light curves, first dimension is a normalised
