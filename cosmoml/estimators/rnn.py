@@ -1,3 +1,4 @@
+import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from tensorflow.contrib.rnn import MultiRNNCell, DropoutWrapper, LSTMCell
 from tensorflow.contrib.rnn import DropoutWrapper
