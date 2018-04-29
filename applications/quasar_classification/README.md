@@ -32,3 +32,9 @@ Here are a few relevant columns:
  mjd
  - `obs_len`: Length of the time series
  - `coadd_label`: 1 for confirmed quasars, 0 otherwise
+
+## HOW TO RUN 
+There are multiple configurations in the `config` folder, you can run against
+ one of them: 
+
+`python run_quasar.py -cfg config/bi_config.yaml`

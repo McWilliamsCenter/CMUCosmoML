@@ -50,9 +50,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
 import resnet_utils
+import tensorflow as tf
 
 slim = tf.contrib.slim
 resnet_arg_scope = resnet_utils.resnet_arg_scope
@@ -206,7 +205,7 @@ def resnet_v2(inputs,
         net = slim.batch_norm(net, activation_fn=tf.nn.relu, scope='postnorm')
         # Convert end_points_collection into a dictionary of end_points.
         end_points = slim.utils.convert_collection_to_dict(
-            end_points_collection)
+          end_points_collection)
 
         if global_pool:
           # Global average pooling.
@@ -221,6 +220,8 @@ def resnet_v2(inputs,
             end_points[sc.name + '/spatial_squeeze'] = net
           end_points['predictions'] = slim.softmax(net, scope='predictions')
         return net, end_points
+
+
 resnet_v2.default_image_size = 224
 
 
@@ -238,14 +239,16 @@ def resnet_v2_block(scope, base_depth, num_units, stride):
     A resnet_v2 bottleneck block.
   """
   return resnet_utils.Block(scope, bottleneck, [{
-      'depth': base_depth * 4,
-      'depth_bottleneck': base_depth,
-      'stride': 1
+    'depth': base_depth * 4,
+    'depth_bottleneck': base_depth,
+    'stride': 1
   }] * (num_units - 1) + [{
-      'depth': base_depth * 4,
-      'depth_bottleneck': base_depth,
-      'stride': stride
+    'depth': base_depth * 4,
+    'depth_bottleneck': base_depth,
+    'stride': stride
   }])
+
+
 resnet_v2.default_image_size = 224
 
 
@@ -259,15 +262,17 @@ def resnet_v2_50(inputs,
                  scope='resnet_v2_50'):
   """ResNet-50 model of [1]. See resnet_v2() for arg and return description."""
   blocks = [
-      resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
-      resnet_v2_block('block2', base_depth=128, num_units=4, stride=2),
-      resnet_v2_block('block3', base_depth=256, num_units=6, stride=2),
-      resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
+    resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
+    resnet_v2_block('block2', base_depth=128, num_units=4, stride=2),
+    resnet_v2_block('block3', base_depth=256, num_units=6, stride=2),
+    resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
   ]
   return resnet_v2(inputs, blocks, num_classes, is_training=is_training,
                    global_pool=global_pool, output_stride=output_stride,
                    include_root_block=True, spatial_squeeze=spatial_squeeze,
                    reuse=reuse, scope=scope)
+
+
 resnet_v2_50.default_image_size = resnet_v2.default_image_size
 
 
@@ -281,15 +286,17 @@ def resnet_v2_101(inputs,
                   scope='resnet_v2_101'):
   """ResNet-101 model of [1]. See resnet_v2() for arg and return description."""
   blocks = [
-      resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
-      resnet_v2_block('block2', base_depth=128, num_units=4, stride=2),
-      resnet_v2_block('block3', base_depth=256, num_units=23, stride=2),
-      resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
+    resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
+    resnet_v2_block('block2', base_depth=128, num_units=4, stride=2),
+    resnet_v2_block('block3', base_depth=256, num_units=23, stride=2),
+    resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
   ]
   return resnet_v2(inputs, blocks, num_classes, is_training=is_training,
                    global_pool=global_pool, output_stride=output_stride,
                    include_root_block=True, spatial_squeeze=spatial_squeeze,
                    reuse=reuse, scope=scope)
+
+
 resnet_v2_101.default_image_size = resnet_v2.default_image_size
 
 
@@ -303,15 +310,17 @@ def resnet_v2_152(inputs,
                   scope='resnet_v2_152'):
   """ResNet-152 model of [1]. See resnet_v2() for arg and return description."""
   blocks = [
-      resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
-      resnet_v2_block('block2', base_depth=128, num_units=8, stride=2),
-      resnet_v2_block('block3', base_depth=256, num_units=36, stride=2),
-      resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
+    resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
+    resnet_v2_block('block2', base_depth=128, num_units=8, stride=2),
+    resnet_v2_block('block3', base_depth=256, num_units=36, stride=2),
+    resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
   ]
   return resnet_v2(inputs, blocks, num_classes, is_training=is_training,
                    global_pool=global_pool, output_stride=output_stride,
                    include_root_block=True, spatial_squeeze=spatial_squeeze,
                    reuse=reuse, scope=scope)
+
+
 resnet_v2_152.default_image_size = resnet_v2.default_image_size
 
 
@@ -325,13 +334,15 @@ def resnet_v2_200(inputs,
                   scope='resnet_v2_200'):
   """ResNet-200 model of [2]. See resnet_v2() for arg and return description."""
   blocks = [
-      resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
-      resnet_v2_block('block2', base_depth=128, num_units=24, stride=2),
-      resnet_v2_block('block3', base_depth=256, num_units=36, stride=2),
-      resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
+    resnet_v2_block('block1', base_depth=64, num_units=3, stride=2),
+    resnet_v2_block('block2', base_depth=128, num_units=24, stride=2),
+    resnet_v2_block('block3', base_depth=256, num_units=36, stride=2),
+    resnet_v2_block('block4', base_depth=512, num_units=3, stride=1),
   ]
   return resnet_v2(inputs, blocks, num_classes, is_training=is_training,
                    global_pool=global_pool, output_stride=output_stride,
                    include_root_block=True, spatial_squeeze=spatial_squeeze,
                    reuse=reuse, scope=scope)
+
+
 resnet_v2_200.default_image_size = resnet_v2.default_image_size

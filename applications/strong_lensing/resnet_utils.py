@@ -38,6 +38,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
+
 import tensorflow as tf
 
 slim = tf.contrib.slim
@@ -224,11 +225,11 @@ def resnet_arg_scope(weight_decay=0.0001,
     An `arg_scope` to use for the resnet models.
   """
   batch_norm_params = {
-      'decay': batch_norm_decay,
-      'epsilon': batch_norm_epsilon,
-      'scale': batch_norm_scale,
-      'updates_collections': tf.GraphKeys.UPDATE_OPS,
-      'fused': None,  # Use fused batch norm if possible.
+    'decay': batch_norm_decay,
+    'epsilon': batch_norm_epsilon,
+    'scale': batch_norm_scale,
+    'updates_collections': tf.GraphKeys.UPDATE_OPS,
+    'fused': None,  # Use fused batch norm if possible.
   }
 
   with slim.arg_scope(
