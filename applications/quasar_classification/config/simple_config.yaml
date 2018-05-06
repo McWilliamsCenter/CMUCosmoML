@@ -9,7 +9,7 @@ train:
 
 model:
   is_bidirectional: FALSE
-  is_attended: Y
+  is_attended: FALSE
   hidden_units: [128, 128]
   in_dropout: 1.0
-  out_dropout: 1.0
+  out_dropout: 0.8

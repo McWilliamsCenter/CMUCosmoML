@@ -40,20 +40,14 @@ def _rnn_model_fn(features, labels, hidden_units, optimizer, activation_fn,
                                       dtype=tf.float32)
 
     # concat 2 directions' outputs together horizontally
-    last_rnn_output = tf.concat([final_state[0][-1].h, final_state[1][-1].h],
-                                axis=1)
     rnn_outputs = tf.concat([rnn_outputs[0], rnn_outputs[1]],
                             axis=2)
-
-    # import pdb; pdb.set_trace()
 
   else:
     rnn_outputs, final_state = tf.nn.dynamic_rnn(network, input_layer,
                                                  sequence_length=length_layer,
                                                  dtype=tf.float32,
                                                  scope='rnn')
-    last_rnn_output = final_state[-1].h
-
   # Attention
   if is_attended:
     batch_size, output_len, hidden_len = rnn_outputs.get_shape().as_list()
@@ -67,18 +61,21 @@ def _rnn_model_fn(features, labels, hidden_units, optimizer, activation_fn,
                                    [-1, output_len, output_len])  # B x L x L
 
     # now get the re-weighted outputs
-    attention_outputs = tf.matmul(attention_weights, rnn_outputs)  # B x L x H
+    rnn_outputs = tf.matmul(attention_weights, rnn_outputs)  # B x L x H
+    # attention_outputs = tf.matmul(attention_weights, rnn_outputs)  # B x L x H
 
-    # get the attended output now
-    last_rnn_output = attention_outputs[:, output_len-1, :] # B x 1 x H
-    last_rnn_output = tf.squeeze(last_rnn_output)  # B x H
-    last_rnn_output.set_shape([None, hidden_len])
+    # # get the attended output now
+    # last_rnn_output = attention_outputs[:, output_len-1, :] # B x 1 x H
+    # last_rnn_output = tf.squeeze(last_rnn_output)  # B x H
+    # last_rnn_output.set_shape([None, hidden_len])
+
+  # sum all outputs B x L x H => B x H
+  last_rnn_output = tf.reduce_sum(rnn_outputs, axis=1)
 
   # Applies a last MLP for building the final prediction
   logits = slim.fully_connected(last_rnn_output, 64, scope='fc/fc_1',
                                 activation_fn=tf.nn.elu)
 
-  # logits = slim.fully_connected(logits, 128, scope='fc/fc_2',  activation_fn=tf.nn.elu)
   logits = tf.reshape(
     slim.fully_connected(logits, 1, scope='fc/fc_3', activation_fn=None), (-1,))
 

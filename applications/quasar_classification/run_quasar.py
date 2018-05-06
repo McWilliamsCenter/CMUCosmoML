@@ -22,7 +22,8 @@ from cosmoml.estimators import RNNClassifier
 parser = argparse.ArgumentParser(description="Train a rnn classifier")
 parser.add_argument('-cfg', '--config', type=str, nargs='?',
                     help='configuration file path',
-                    default='./config/bi_attention_config.yaml')
+                    default='./config/simple_config.yaml')
+                    # default='./config/bi_attention_config.yaml')
 args = parser.parse_args()
 
 with open(args.config, 'r') as f:
