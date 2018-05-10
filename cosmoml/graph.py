@@ -14,6 +14,8 @@ def spatial_adjacency(features,
                               weights_regularizer=None,
                               biases_initializer=tf.zeros_initializer(),
                               biases_regularizer=None,
+                              radial_scale=1.0,
+			      learn_scale=False,
                               reuse=None,
                               variables_collections=None,
                               outputs_collections=None,
@@ -42,8 +44,8 @@ def spatial_adjacency(features,
         r2 = tf.reduce_sum(r**2, axis=1)
 
         s = model_variable('scale',dtype=tf.float32,
-                            initializer=tf.constant(1., dtype=tf.float32),
-                            trainable=True)
+                            initializer=tf.constant(radial_scale, dtype=tf.float32),
+                            trainable=learn_scale)
 
         # Apply distance scaling
         dr = tf.exp(- 0.5 * r2/(s**2))
