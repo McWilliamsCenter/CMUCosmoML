@@ -14,7 +14,7 @@ def spatial_adjacency(features,
                               weights_regularizer=None,
                               biases_initializer=tf.zeros_initializer(),
                               biases_regularizer=None,
-                              radial_weighting=None,
+                              radial_weighting='binary',
                               radial_scale=1.0,
 			                  learn_scale=False,
                               reuse=None,
@@ -29,7 +29,7 @@ def spatial_adjacency(features,
     Generate a sparse adjacency matrix of shape (n, n, filter_size)
 
     Radial weighting schemes:
-        - None: in this case, binary weights are used
+        - 'binary': in this case, binary weights are used
         - 'exp': w(r) = exp(-0.5 ( r**2/(scale)**2 ))
         - 'r':  w(r) = r
         - 'inv_r2': w(r) = 1/((r/scale)**2 +1 )
@@ -54,7 +54,7 @@ def spatial_adjacency(features,
                             initializer=tf.constant(radial_scale, dtype=tf.float32),
                             trainable=learn_scale)
 
-        if radial_weighting is None:
+        if radial_weighting is 'binary':
             dr = tf.ones_like(adjacency.values)
         elif radial_weighting is 'exp':
             dr = tf.exp(- 0.5 * r2/(s**2))
@@ -74,10 +74,6 @@ def spatial_adjacency(features,
         # Renormalise the adjacency matrix
         t_inv = 1./ tf.sqrt(tf.sparse_reduce_sum(t, axis=1) + 1) # The one is for self connection
         t_inv = tf.gather(t_inv, adjacency.indices[:,0]) * tf.gather(t_inv, adjacency.indices[:,1])
-
-        # Multiply d by the input adjacency values which should account for the
-        # number of neighbours
-        #d = d * tf.expand_dims(adjacency.values,axis=1)
 
         # Generating a list of sparse tensors as output
         q = []
