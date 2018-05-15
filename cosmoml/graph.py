@@ -14,6 +14,7 @@ def spatial_adjacency(features,
                               weights_regularizer=None,
                               biases_initializer=tf.zeros_initializer(),
                               biases_regularizer=None,
+                              radial_weighting=None,
                               radial_scale=1.0,
 			                  learn_scale=False,
                               reuse=None,
@@ -26,6 +27,12 @@ def spatial_adjacency(features,
     https://arxiv.org/pdf/1706.05206.pdf
 
     Generate a sparse adjacency matrix of shape (n, n, filter_size)
+
+    Radial weighting schemes:
+        - None: in this case, binary weights are used
+        - 'exp': w(r) = exp(-0.5 ( r**2/(scale)**2 ))
+        - 'r':  w(r) = r
+        - 'inv_r2': w(r) = 1/((r/scale)**2 +1 )
     """
     ss, n_features = features.get_shape()
     with tf.variable_scope(scope, 'spatial_adjacency',
@@ -47,12 +54,22 @@ def spatial_adjacency(features,
                             initializer=tf.constant(radial_scale, dtype=tf.float32),
                             trainable=learn_scale)
 
+        if radial_weighting is None:
+            dr = tf.ones_like(adjacency.values)
+        elif radial_weighting is 'exp':
+            dr = tf.exp(- 0.5 * r2/(s**2))
+        elif radial_weighting is 'r':
+            dr = tf.sqrt(r2)
+        elif radial_weighting is 'inv_r2':
+            dr = 1./(r2/s**2 + 1 )
+        else:
+            raise NotImplementedError
+
         # Apply distance scaling
-        #dr = tf.exp(- 0.5 * r2/(s**2))
-        d = d * tf.expand_dims(adjacency.values,axis=1)# tf.expand_dims(dr,axis=1)
+        d = d * tf.expand_dims(dr,axis=1)
         t = tf.SparseTensor(indices=adjacency.indices,
                             dense_shape=adjacency.dense_shape,
-                            values=adjacency.values)
+                            values=dr)
 
         # Renormalise the adjacency matrix
         t_inv = 1./ tf.sqrt(tf.sparse_reduce_sum(t, axis=1) + 1) # The one is for self connection
