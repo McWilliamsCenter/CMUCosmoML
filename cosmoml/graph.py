@@ -15,7 +15,7 @@ def spatial_adjacency(features,
                               biases_initializer=tf.zeros_initializer(),
                               biases_regularizer=None,
                               radial_scale=1.0,
-			      learn_scale=False,
+			                  learn_scale=False,
                               reuse=None,
                               variables_collections=None,
                               outputs_collections=None,
@@ -48,12 +48,11 @@ def spatial_adjacency(features,
                             trainable=learn_scale)
 
         # Apply distance scaling
-        dr = tf.exp(- 0.5 * r2/(s**2))
-        d = d * tf.expand_dims(dr,axis=1)
-
+        #dr = tf.exp(- 0.5 * r2/(s**2))
+        d = d * tf.expand_dims(adjacency.values,axis=1)# tf.expand_dims(dr,axis=1)
         t = tf.SparseTensor(indices=adjacency.indices,
                             dense_shape=adjacency.dense_shape,
-                            values=dr)
+                            values=adjacency.values)
 
         # Renormalise the adjacency matrix
         t_inv = 1./ tf.sqrt(tf.sparse_reduce_sum(t, axis=1) + 1) # The one is for self connection
