@@ -21,8 +21,9 @@ def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
     # Builds the neural network
     #net = deep_mlp(input_layer, hidden_units, activation_fn, normalizer_fn,
     #               dropout, is_training)
-    net = slim.fully_connected(input_layer, 512,activation_fn=tf.nn.elu)
-    net = slim.fully_connected(net, 512,activation_fn=tf.nn.elu)
+    net = slim.fully_connected(input_layer, 512,activation_fn=tf.nn.leaky_relu)
+    net = slim.fully_connected(net, 512,activation_fn=tf.nn.leaky_relu)
+    net = slim.fully_connected(net, 512,activation_fn=tf.nn.leaky_relu)
 
     # Size of the covariance matrix
     if diag ==True:

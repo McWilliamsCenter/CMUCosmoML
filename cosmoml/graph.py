@@ -41,14 +41,14 @@ def spatial_adjacency(features,
         # Compute radial distance
         r = tf.gather(features, adjacency.indices[:,0]) - tf.gather(features, adjacency.indices[:,1])
         r2 = tf.reduce_sum(r**2, axis=1)
-        r = tf.sqrt(r)
+        r = tf.sqrt(r2)
 
         # Computes distances for each connection
         d = tf.matmul(features, directions)
-        d = (tf.gather(d, adjacency.indices[:,0]) - tf.gather(d, adjacency.indices[:,1])) / tf.expand_dims(r, axis=-1)
+        d = tf.gather(d, adjacency.indices[:,0]) - tf.gather(d, adjacency.indices[:,1])
 
         # Applying softmax along last dimension
-        d = tf.nn.softmax(d)
+        d = tf.nn.softmax(d / tf.expand_dims(r,axis=1))
 
         s = model_variable('scale',dtype=tf.float32,
                             initializer=tf.constant(radial_scale, dtype=tf.float32),
