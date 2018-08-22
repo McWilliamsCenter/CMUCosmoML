@@ -38,8 +38,7 @@ def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
     out_sigma = slim.fully_connected(net, size_sigma *n_mixture, activation_fn=None)
     out_sigma = tf.reshape(out_sigma, (-1,n_mixture, size_sigma))
 
-    out_p = slim.fully_connected(net, n_mixture, activation_fn=None)
-    out_p = tf.nn.softmax(tf.reshape(out_p, (-1, n_mixture)))
+    out_p = slim.fully_connected(net, n_mixture, activation_fn=tf.nn.softmax)
 
     if diag == True:
         sigma_mat = tf.nn.softplus(out_sigma)+1e-4
@@ -81,7 +80,7 @@ def _mdn_model_fn(features, labels, hidden_units, n_mixture, diag,
     if mode == tf.estimator.ModeKeys.TRAIN:
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            train_op = optimizer(learning_rate=0.00001).minimize(loss=total_loss,
+            train_op = optimizer(learning_rate=0.0002).minimize(loss=total_loss,
                                         global_step=tf.train.get_global_step())
         tf.summary.scalar('loss', loss)
     elif mode == tf.estimator.ModeKeys.EVAL:

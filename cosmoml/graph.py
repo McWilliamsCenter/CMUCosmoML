@@ -53,7 +53,7 @@ def spatial_adjacency(features,
         s = model_variable('scale',dtype=tf.float32,
                             initializer=tf.constant(radial_scale, dtype=tf.float32),
                             trainable=learn_scale)
-
+        tf.summary.scalar("scale", s)
         if radial_weighting is 'binary':
             dr = tf.ones_like(adjacency.values)
         elif radial_weighting is 'exp':
